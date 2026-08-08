@@ -1,0 +1,11 @@
+node_modules
+dist
+.DS_Store
+
+# Internal planning and diagnostics — not part of the public portfolio repo.
+.scratch/
+design docs/
+probe.html
+
+# Contains api-keys.txt — never commit.
+.claude/

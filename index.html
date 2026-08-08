@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#include partials/head.html-->
+<link rel="stylesheet" href="/src/css/tokens.css">
+<link rel="stylesheet" href="/src/css/base.css">
+<link rel="stylesheet" href="/src/css/sections/fold.css">
+<link rel="stylesheet" href="/src/css/sections/experience.css">
+<link rel="stylesheet" href="/src/css/sections/closing.css">
+</head>
+<body>
+
+<a class="skip" href="#experience">Skip to experience</a>
+
+<header class="fold">
+  <div class="wrap">
+<!--#include partials/header.html-->
+  </div>
+
+  <div class="wrap stage enter">
+    <h1>Frontend<br>engineer<span class="sub">Data at browser scale</span></h1>
+    <p class="pitch">I build the interfaces enterprise teams live inside all day —
+      <b>dashboards backed by millions of records in the browser</b> — that stay fast under real load.</p>
+  </div>
+
+  <div class="wrap">
+    <div class="spec">
+      <div class="cell hero">
+        <span class="v">390 KB</span>
+        <span class="was">from 10.4 MB — unminified, uncompressed, nothing stripped</span>
+        <span class="k">Production bundle</span>
+      </div>
+      <div class="cell">
+        <span class="v">2.0 s</span>
+        <span class="was">from over three minutes</span>
+        <span class="k">First load</span>
+      </div>
+      <div class="cell">
+        <span class="v">Millions</span>
+        <span class="was">streamed over SSE, held in IndexedDB</span>
+        <span class="k">Records in browser</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<section class="exp wrap" id="experience" aria-labelledby="exp-head">
+  <h2 class="eyebrow" id="exp-head">Experience</h2>
+
+  <ul>
+    <li class="job">
+      <h3>Ecma Technologies</h3>
+      <p class="meta">Frontend Engineer · 2023 — present · Bangalore</p>
+      <p class="blurb">An XDR platform used by security analysts to investigate threats across an
+        organisation's environment. I own the frontend of the analyst console — the data layer it
+        runs on, and the table they spend their day in.</p>
+
+      <div class="beat" data-beat="bundle">
+        <div class="text">
+          <p class="tag">Performance</p>
+          <p class="claim">10.4 MB <span class="unit">→</span> 390 KB</p>
+          <p class="say">The production build shipped unminified, uncompressed, nothing stripped.
+            Fixing the pipeline first, then tree-shaking and splitting, took first load from over
+            three minutes to about two seconds.</p>
+        </div>
+        <canvas data-canvas="bundle" aria-hidden="true"></canvas>
+      </div>
+
+      <div class="beat flip" data-beat="stream">
+        <div class="text">
+          <p class="tag">Real-time data</p>
+          <p class="claim">Millions of records</p>
+          <p class="say">Telemetry arrives continuously over SSE. It lands in IndexedDB rather than
+            memory, and the UI pages small slices out of it — so the browser holds the dataset while
+            the interface only ever renders what fits.</p>
+        </div>
+        <canvas data-canvas="stream" aria-hidden="true"></canvas>
+      </div>
+
+      <div class="beat" data-beat="table">
+        <div class="text">
+          <p class="tag">Reusable systems</p>
+          <p class="claim">A table analysts shape themselves</p>
+          <p class="say">Columns size themselves from their content, so no developer guesses a width
+            again. Analysts show, hide, reorder and pin columns, expand any row for detail, then save
+            the whole arrangement as a view that loads next time they return.</p>
+        </div>
+        <canvas data-canvas="table" aria-hidden="true"></canvas>
+      </div>
+    </li>
+  </ul>
+</section>
+
+<section class="about wrap" aria-labelledby="about-head">
+  <h2 class="eyebrow filter" id="about-head">3+ years · Bangalore · remote or hybrid</h2>
+  <div>
+    <p>I like the problems that only show up once something is genuinely large: the point where a
+      pattern that worked fine in a demo stops working, and the fix has to come from understanding
+      what the browser is actually doing. Most of what I have shipped lives behind a login, used by
+      the same people every day, which is a good discipline — nothing gets to be impressive once and
+      then ignored. I work best where I own a surface end to end and can keep sharpening it.</p>
+  </div>
+</section>
+
+<section class="skills wrap" aria-labelledby="skills-head">
+  <h2 class="eyebrow" id="skills-head">Skills</h2>
+  <dl class="groups">
+    <div>
+      <dt>Language &amp; types</dt>
+      <dd>JavaScript, TypeScript</dd>
+    </div>
+    <div>
+      <dt>React at scale</dt>
+      <dd>React internals, React performance</dd>
+    </div>
+    <div>
+      <dt>Build &amp; browser</dt>
+      <dd>Webpack, bundle analysis, browser storage APIs</dd>
+    </div>
+  </dl>
+</section>
+
+<section class="contact" aria-labelledby="contact-head">
+  <div class="wrap">
+    <h2 class="eyebrow" id="contact-head">Contact</h2>
+    <a class="lead" href="mailto:manatsinghbrar@gmail.com">manatsinghbrar@gmail.com</a>
+    <p class="secondary">
+      <a href="/cv.pdf" download>Download CV</a>
+      <a href="https://www.linkedin.com/in/manatsinghbrar" rel="me noopener">LinkedIn</a>
+    </p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+<!--#include partials/footer.html-->
+</footer>
+
+<script type="module" src="/src/js/driver.js"></script>
+</body>
+</html>

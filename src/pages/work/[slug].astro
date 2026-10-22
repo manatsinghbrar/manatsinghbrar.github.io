@@ -1,0 +1,65 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Base from '../../layouts/Base.astro';
+import Figure from '../../components/Figure.astro';
+import { cases, type Case } from '../../data/site';
+
+export const getStaticPaths = (() =>
+  cases.map((c, i) => ({
+    params: { slug: c.slug },
+    props: { c, index: i, next: cases[(i + 1) % cases.length], nextIndex: (i + 1) % cases.length },
+  }))) satisfies GetStaticPaths;
+
+interface Props {
+  c: Case;
+  index: number;
+  next: Case;
+  nextIndex: number;
+}
+const { c, index, next, nextIndex } = Astro.props;
+const pad = (i: number) => String(i + 1).padStart(2, '0');
+---
+<Base title={c.title} description={c.summary}>
+  <article class="case">
+    <header class="case-head" data-case-head>
+      <div class="wrap">
+        <a class="case-back" href="/#work">← All work</a>
+        <div class="case-head__row">
+          <p class="case-head__num">Row {pad(index)} of {String(cases.length).padStart(2, '0')}</p>
+          <h1 class="case-head__title" data-split="lines" data-intro>{c.title}</h1>
+        </div>
+        <dl class="case-head__meta" data-reveal="fade" data-intro data-delay="0.25">
+          <div><dt>Area</dt><dd>{c.area}</dd></div>
+          <div><dt>Level</dt><dd>{c.levels.join(', ')}</dd></div>
+          <div><dt>Result</dt><dd class="case-head__result">{c.result}</dd></div>
+          <div class="case-head__stack"><dt>Stack</dt><dd>{c.stack.join('\u00a0· ')}</dd></div>
+        </dl>
+      </div>
+    </header>
+
+    <div class="wrap case__body">
+      <p class="case__summary" data-reveal="up" data-intro data-delay="0.35">{c.summary}</p>
+      <div class="case__figure" data-reveal="up">
+        <Figure figure={c.figure} />
+      </div>
+      {c.body.map((s) => (
+        <section class="case__section" data-reveal="up">
+          <h2 class="case__heading">{s.heading}</h2>
+          <div class="case__text">
+            {s.text.map((p) => <p>{p}</p>)}
+          </div>
+        </section>
+      ))}
+    </div>
+
+    <nav class="wrap case-next" aria-label="Next case">
+      <p class="case-next__label">Next row</p>
+      <a class="case-next__row" href={`/work/${next.slug}/`} data-row-link data-row>
+        <span class="case-next__num">{pad(nextIndex)}</span>
+        <span class="case-next__title">{next.title}</span>
+        <span class="case-next__result">{next.result}</span>
+        <span class="row__arrow" aria-hidden="true">→</span>
+      </a>
+    </nav>
+  </article>
+</Base>

@@ -1,0 +1,121 @@
+---
+import Base from '../layouts/Base.astro';
+import WorkTable from '../components/WorkTable.astro';
+import { about, career, cases, record, site, stack } from '../data/site';
+
+// The statement's key phrase is lit like a search hit: the table's language on the first frame.
+const hitAt = site.statement.indexOf(site.statementHit);
+const [before, rest] = hitAt < 0
+  ? [site.statement, '']
+  : [site.statement.slice(0, hitAt), site.statement.slice(hitAt + site.statementHit.length)];
+// Punctuation right after the hit stays on its line (the line split would otherwise orphan it).
+const [, tail = '', after = ''] = /^([^\s]*)(.*)$/s.exec(rest) ?? [];
+---
+<Base>
+  <section class="hero wrap" aria-labelledby="hero-title">
+    <div class="hero__top">
+      <div>
+        <h1 class="hero__title" id="hero-title" data-split="lines" data-intro>
+          {site.name}, frontend engineer
+        </h1>
+        <p class="hero__meta" data-reveal="fade" data-intro data-delay="0.2">
+          {site.title} at {site.employer}. 3+ years of React and TypeScript.
+        </p>
+      </div>
+      <div class="hero__ctas" data-reveal="fade" data-intro data-delay="0.3">
+        <a class="cta" href={`mailto:${site.email}`}><span>Email me</span><span class="cta__arrow" aria-hidden="true">→</span></a>
+        <a class="cta cta--quiet" href={site.cv} target="_blank" rel="noopener noreferrer" data-astro-prefetch="false"><span>Resume<span class="sr-only"> (opens in a new tab)</span></span><span class="cta__arrow" aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+    <p class="hero__statement" data-split="lines" data-intro data-delay="0.1">
+      {before}{hitAt >= 0 && <span class="nowrap"><mark class="hero__hit">{site.statementHit}</mark>{tail}</span>}{after}
+    </p>
+  </section>
+
+  <section class="work wrap" id="work" aria-labelledby="work-title">
+    <div class="section-head">
+      <h2 class="h-l" id="work-title">Work</h2>
+      <p class="section-head__note">
+        {cases.length} pieces, all from production. Sort a column, search the stack, or open a row.
+      </p>
+    </div>
+    <WorkTable />
+  </section>
+
+  <!-- Track record is the table's summary row: one framed strip, label over figure in each cell. -->
+  <section class="record wrap" id="record" aria-labelledby="record-title">
+    <div class="section-head section-head--light">
+      <h2 class="h-l" id="record-title">Track record</h2>
+      <p class="section-head__note">Totals since 2022, all at {site.employer}.</p>
+    </div>
+    <dl class="record__strip table-frame" data-reveal="up">
+      {record.map((r) => (
+        <div class="record__cell">
+          <dt class="record__label">{r.label}</dt>
+          <dd class="record__value">{r.value}</dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+
+  <!-- Career in the work table's language: Dates / Role / Scope, same hover flood (no links). -->
+  <section class="career wrap" id="career" aria-labelledby="career-title">
+    <div class="section-head section-head--light">
+      <h2 class="h-l" id="career-title">Career</h2>
+      <p class="section-head__note">{career.length} roles, one company: intern to senior.</p>
+    </div>
+    <div class="table-frame" data-reveal="up">
+      <table class="career-table" role="table">
+        <caption class="sr-only">Career at {site.employer}, most recent role first.</caption>
+        <thead role="rowgroup">
+          <tr role="row">
+            <th scope="col" role="columnheader" class="c-dates">Dates</th>
+            <th scope="col" role="columnheader" class="c-role">Role</th>
+            <th scope="col" role="columnheader" class="c-scope">Scope</th>
+          </tr>
+        </thead>
+        <tbody role="rowgroup">
+          {career.map((c) => (
+            <tr class="career-row" role="row">
+              <td class="c-dates" role="cell">{c.when}</td>
+              <td class="c-role" role="cell">
+                <span class="career-row__role">{c.role}</span>
+                <span class="career-row__org">{site.employer}</span>
+              </td>
+              <td class="c-scope" role="cell">{c.text}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="about wrap" id="about" aria-labelledby="about-title">
+    <h2 class="h-l about__title" id="about-title" data-reveal="up">About</h2>
+    <div class="about__text">
+      {about.text.map((p) => <p data-split="lines">{p}</p>)}
+    </div>
+    <dl class="about__facts">
+      {about.facts.map((f) => (
+        <div class="about__fact" data-reveal="up">
+          <dt>{f.k}</dt>
+          <dd>{f.v}</dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+
+  <section class="stack wrap" id="stack" aria-labelledby="stack-title">
+    <h2 class="h-l stack__title" id="stack-title">Stack</h2>
+    <dl class="stack__groups">
+      {stack.map((g) => (
+        <div class="stack__group" data-reveal="up">
+          <dt>{g.k}</dt>
+          <dd>
+            <ul role="list">{g.v.map((v) => <li>{v}</li>)}</ul>
+          </dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+</Base>

@@ -1,0 +1,76 @@
+---
+// The work index as a real data table. Reads, sorts by source order and links without JS;
+// src/motion/table.ts adds sorting and the search highlight.
+// [data-hl] marks cells whose text the search may highlight: each holds plain text only.
+import { cases, levelRank } from '../data/site';
+
+const pad = (i: number) => String(i + 1).padStart(2, '0');
+const topLevel = (levels: (keyof typeof levelRank)[]) => Math.max(...levels.map((l) => levelRank[l]));
+const sortable = [
+  { key: 'index', label: '#', name: 'Number', className: 'c-num' },
+  { key: 'title', label: 'Work', className: 'c-work' },
+  { key: 'area', label: 'Area', className: 'c-area' },
+  { key: 'level', label: 'Level', className: 'c-level' },
+];
+---
+<div class="work-table" data-table-root>
+  <div class="table-tools">
+    <label class="search">
+      <span class="sr-only">Search the work table</span>
+      <svg class="search__icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5" /><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" /></svg>
+      <input
+        type="search"
+        data-search
+        placeholder="Search work, e.g. TypeScript"
+        maxlength="40"
+        autocomplete="off"
+        spellcheck="false"
+        aria-describedby="table-count"
+      />
+    </label>
+    <p class="table-count" id="table-count" data-count role="status" aria-live="polite">{cases.length} rows</p>
+  </div>
+
+  <div class="table-frame">
+    <table>
+      <caption class="sr-only">Selected work. Column headers sort the table; each row opens a case page.</caption>
+      <thead>
+        <tr>
+          {sortable.map((s) => (
+            <th scope="col" class={s.className} data-sort-col={s.key} aria-sort={s.key === 'index' ? 'ascending' : undefined}>
+              <button type="button" class="sort" data-sort={s.key}>
+                {s.name ? <><span aria-hidden="true">{s.label}</span><span class="sr-only">{s.name}</span></> : s.label}<span class="sort__dir" aria-hidden="true"></span>
+              </button>
+              <span class="sort-label">{s.name ? <><span aria-hidden="true">{s.label}</span><span class="sr-only">{s.name}</span></> : s.label}</span>
+            </th>
+          ))}
+          <th scope="col" class="c-result">Result</th>
+        </tr>
+      </thead>
+      <tbody data-rows>
+        {cases.map((c, i) => (
+          <tr
+            class="row"
+            data-row
+            data-index={i}
+            data-title={c.title}
+            data-area={c.area}
+            data-level={topLevel(c.levels)}
+          >
+            <td class="c-num">{pad(i)}</td>
+            <td class="c-work">
+              <a class="row__link" href={`/work/${c.slug}/`} data-row-link>
+                <span class="row__title" data-hl>{c.title}</span>
+                <span class="row__arrow" aria-hidden="true">→</span>
+              </a>
+              <span class="row__stack" data-hl>{c.stack.join('\u00a0· ')}</span>
+            </td>
+            <td class="c-area" data-hl>{c.area}</td>
+            <td class="c-level" data-hl>{c.levels.join(', ')}</td>
+            <td class="c-result" data-hl>{c.result}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>

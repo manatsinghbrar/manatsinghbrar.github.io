@@ -1,0 +1,47 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Not found" description="This page does not exist." noindex>
+  <section class="missing wrap" aria-labelledby="missing-title">
+    <h1 class="missing__title" id="missing-title" data-split="lines" data-intro>0 rows match.</h1>
+    <div class="work-table">
+      <div class="table-tools">
+        <p class="search search--static"><span class="missing__query" data-missing-path>this path</span></p>
+        <p class="table-count">0 of 0 rows match</p>
+      </div>
+      <div class="table-frame">
+        <table>
+          <caption class="sr-only">An empty result: no page lives at this address.</caption>
+          <thead>
+            <tr>
+              <th scope="col" class="c-num">#</th>
+              <th scope="col" class="c-work">Work</th>
+              <th scope="col" class="c-area">Area</th>
+              <th scope="col" class="c-level">Level</th>
+              <th scope="col" class="c-result">Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="row row--empty">
+              <td colspan="5">No page lives at this address. It may have moved when the site was rebuilt.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="missing__cta">
+      <a class="cta" href="/#work"><span>Clear search, back to all work</span><span class="cta__arrow" aria-hidden="true">→</span></a>
+    </p>
+  </section>
+  <script>
+    import { onPage } from '../engine';
+    // Show the requested path as the "query". textContent only: the URL is untrusted input.
+    onPage(() => {
+      const el = document.querySelector<HTMLElement>('[data-missing-path]');
+      if (!el) return;
+      let path = location.pathname;
+      try { path = decodeURI(path); } catch { /* malformed escape: show it raw */ }
+      el.textContent = path.slice(0, 80);
+    });
+  </script>
+</Base>

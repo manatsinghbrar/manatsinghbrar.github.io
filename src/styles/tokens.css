@@ -1,0 +1,130 @@
+/* Design tokens. Values from DESIGN.md (v2). The names are the contract engine.css reads. */
+
+@font-face {
+  font-family: 'Supreme';
+  src: url('/fonts/supreme-400-normal.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Supreme';
+  src: url('/fonts/supreme-500-normal.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Supreme';
+  src: url('/fonts/supreme-700-normal.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Plex Mono';
+  src: url('/fonts/plex-mono-400-normal.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Plex Mono';
+  src: url('/fonts/plex-mono-500-normal.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light;
+
+  /* Colour, by role. Hit is the search-match / pointer yellow: always under --c-on-hit, never
+     as text. At rest only as the result fill in case figures, outlined in ink. */
+  --c-ground: #eceef1;
+  --c-surface: #ffffff;
+  --c-ink: #0b0d12;
+  --c-muted: #555c6a;
+  --c-line: #d3d7de;
+  --c-line-strong: #868c98; /* control edges: 3.4:1 on surface, meets the 3:1 non-text minimum */
+  --c-hit: #ffd84d;
+  --c-on-hit: #0b0d12; /* text on hit, in both appearances: 14.1:1 */
+  --c-finale-bg: var(--c-ink); /* footer: inverted in light, deepest dark in dark */
+  --c-finale-fg: var(--c-ground);
+
+  /* Engine contract names */
+  --c-bg: var(--c-ground);
+  --c-fg: var(--c-ink);
+  --c-accent: var(--c-ink);
+  --c-curtain: var(--c-ink);
+
+  /* Type */
+  --f-display: 'Supreme', ui-sans-serif, system-ui, sans-serif;
+  --f-body: 'Supreme', ui-sans-serif, system-ui, sans-serif;
+  --f-mono: 'Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* Fluid scale (375 → 1440) */
+  --t-mega: clamp(3rem, 0.9rem + 9vw, 9rem);
+  --t-xl: clamp(2.25rem, 1.2rem + 4.4vw, 6rem);
+  --t-l: clamp(1.75rem, 1.3rem + 1.9vw, 3rem);
+  --t-m: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
+  --t-body: 1.0625rem;
+  --t-s: 0.875rem;
+  --t-xs: 0.75rem;
+
+  /* Space and grid */
+  --u: clamp(0.5rem, 0.35rem + 0.6vw, 1rem);
+  --gutter: clamp(1rem, 0.6rem + 1.6vw, 2.5rem);
+  --cols: 12;
+  --wrap: 1520px;
+  --header-h: 4rem;
+
+  /* Shape: 0 on structure; 999px only on the search field and hit marks. */
+  --radius: 0px;
+  --pill: 999px;
+
+  /* Motion (expo family) */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.87, 0, 0.13, 1);
+  --hover: 0.3s;
+
+  /* Layers */
+  --z-content: 1;
+  --z-header: 50;
+  --z-curtain: 90;
+}
+
+/* Dark: the same console at night, chosen with the header toggle (light is the default; the
+   system setting is not followed). Not an inversion: ink is softened to #e6e8ec, the footer
+   stays the darkest ground instead of flipping light. Ink on ground 15.4:1, muted 7.3:1,
+   control edges 3.7:1 on surface. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --c-ground: #0f1115;
+  --c-surface: #171a20;
+  --c-ink: #e6e8ec;
+  --c-muted: #9aa1ad;
+  --c-line: #2b3039;
+  --c-line-strong: #6c7380;
+  --c-finale-bg: #08090c;
+  --c-finale-fg: #e6e8ec;
+  --c-curtain: #3a404b;
+}
+
+/* Increased contrast: muted text 5.8:1 → 8.3:1 on ground; hairlines become visible edges. */
+@media (prefers-contrast: more) {
+  :root {
+    --c-muted: #3f4552;
+    --c-line: #868c98;
+    --c-line-strong: #555c6a;
+  }
+}
+@media (prefers-contrast: more) {
+  :root[data-theme='dark'] {
+    --c-muted: #b8bec8; /* 10.1:1 on ground */
+    --c-line: #6c7380;
+    --c-line-strong: #9aa1ad;
+  }
+}

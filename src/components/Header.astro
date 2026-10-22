@@ -1,0 +1,51 @@
+---
+import { site } from '../data/site';
+
+// Section links are in-page anchors on the home page and point home from everywhere else.
+const home = Astro.url.pathname === '/';
+const href = (id: string) => (home ? `#${id}` : `/#${id}`);
+const onCase = Astro.url.pathname.startsWith('/work/');
+const nav = [
+  { id: 'work', label: 'Work' },
+  { id: 'record', label: 'Track record' },
+  { id: 'about', label: 'About' },
+  { id: 'contact', label: 'Contact' },
+];
+---
+<header class="header" data-header>
+  <div class="wrap header__inner">
+    <a class="header__name" href="/" aria-label={`${site.name}, home`}>{site.name}</a>
+    <!-- Phones with JS: one row (name, Menu); nav and theme drop down from it. The button sits
+         before the panel so Tab moves from it into the open menu. Desktop: the panel is
+         display: contents and the button is hidden, so the layout is unchanged. -->
+    <button type="button" class="menu-toggle" data-menu-toggle aria-expanded="false" aria-controls="site-menu">
+      Menu<span class="menu-toggle__sign" aria-hidden="true"></span>
+    </button>
+    <div class="header__panel" id="site-menu">
+    <nav class="header__nav" aria-label="Main">
+      <ul role="list">
+        {nav.map((n) => (
+          <li>
+            <a class:list={['nav-link', { 'is-current': onCase && n.id === 'work' }]} href={href(n.id)} data-nav={n.id}>
+              {n.label}
+            </a>
+          </li>
+        ))}
+        <li>
+          <a class="nav-link" href={site.cv} target="_blank" rel="noopener noreferrer" data-astro-prefetch="false">
+            Resume<span class="sr-only"> (opens in a new tab)</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <div class="header__end">
+      <p class="clock">
+        {site.city} <time data-clock datetime="+05:30">UTC+5:30</time>
+      </p>
+      <button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false">
+        <span class="theme-toggle__sw" aria-hidden="true"></span>Dark<span class="sr-only"> theme</span>
+      </button>
+    </div>
+    </div>
+  </div>
+</header>

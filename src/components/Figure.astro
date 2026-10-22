@@ -1,0 +1,109 @@
+---
+// Case figures. Each one draws only the real numbers from site.ts: no product screenshots or
+// redrawn UI (NDA). A yellow fill with an ink outline marks the result. `stream` is a labelled diagram, and the only
+// animated figure (CSS; still under reduced motion).
+import type { Figure } from '../data/site';
+
+interface Props {
+  figure: Figure;
+}
+const { figure } = Astro.props;
+
+// Area-true squares: side ∝ √value, so the eye compares areas honestly.
+const side = figure.kind === 'area' ? Math.sqrt(figure.to.value / figure.from.value) * 100 : 0;
+const cut = figure.kind === 'area' || figure.kind === 'bars'
+  ? Math.round((1 - figure.to.value / figure.from.value) * 100)
+  : 0;
+const barTo = figure.kind === 'bars' ? (figure.to.value / figure.from.value) * 100 : 0;
+
+// Cells: the widest column count in 8…16 that divides the total evenly, else 12.
+const cellCols = figure.kind === 'cells'
+  ? ([16, 15, 14, 13, 12, 11, 10, 9, 8].find((d) => figure.total % d === 0) ?? 12)
+  : 0;
+---
+<figure class:list={['fig', `fig--${figure.kind}`]}>
+  {figure.kind === 'area' && (
+    <>
+      <div class="fig-area" role="img" aria-label={`${figure.from.label} compared with ${figure.to.label}, drawn to area.`}>
+        <div class="fig-area__from"></div>
+        <div class="fig-area__to" style={`--side:${side.toFixed(2)}%`}></div>
+        <p class="fig-area__cut" aria-hidden="true">−{cut}%</p>
+      </div>
+      <figcaption class="fig-legend">
+        <span><i class="sw sw--from" aria-hidden="true"></i>{figure.from.label}</span>
+        <span><i class="sw sw--to" aria-hidden="true"></i>{figure.to.label}</span>
+        <span class="fig-note">Squares drawn to area.</span>
+      </figcaption>
+    </>
+  )}
+
+  {figure.kind === 'bars' && (
+    <>
+      <div class="fig-bars">
+        <div class="fig-bars__row">
+          <span class="fig-bars__label">{figure.from.label}</span>
+          <span class="fig-bars__bar fig-bars__bar--from" style="--w:100%"></span>
+        </div>
+        <div class="fig-bars__row">
+          <span class="fig-bars__label">{figure.to.label}</span>
+          <span class="fig-bars__bar fig-bars__bar--to" style={`--w:${barTo.toFixed(2)}%`}></span>
+        </div>
+      </div>
+      <figcaption class="fig-legend"><span class="fig-note">{cut}% less JavaScript shipped. Bars drawn to scale.</span></figcaption>
+    </>
+  )}
+
+  {figure.kind === 'cells' && (
+    <>
+      <div class="fig-cells" style={`--cols:${cellCols}`} role="img" aria-label={`${figure.filled} of ${figure.total} filled. ${figure.caption}`}>
+        {Array.from({ length: figure.total }, (_, i) => (
+          <span class:list={['fig-cells__cell', { 'is-on': i < figure.filled }]}></span>
+        ))}
+      </div>
+      <figcaption class="fig-legend">
+        <span class="fig-count">{figure.filled === figure.total ? figure.total : `${figure.filled} of ${figure.total}`}</span>
+        <span>{figure.caption}</span>
+      </figcaption>
+    </>
+  )}
+
+  {figure.kind === 'stream' && (
+    <>
+      <ol class="fig-stream" role="list">
+        <li class="fig-stream__node">
+          <span class="fig-stream__k">Server</span>
+          <span class="fig-stream__v">Server-Sent Events</span>
+        </li>
+        <li class="fig-stream__pipe" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+        </li>
+        <li class="fig-stream__node fig-stream__node--store">
+          <span class="fig-stream__k">Browser store</span>
+          <span class="fig-stream__v">IndexedDB, millions of records</span>
+        </li>
+        <li class="fig-stream__pipe fig-stream__pipe--slice" aria-hidden="true">
+          <span></span><span></span>
+        </li>
+        <li class="fig-stream__node fig-stream__node--view">
+          <span class="fig-stream__k">View</span>
+          <span class="fig-stream__v">A page of 50 to 100 rows</span>
+        </li>
+      </ol>
+      <figcaption class="fig-legend"><span>{figure.caption}</span></figcaption>
+    </>
+  )}
+
+  {figure.kind === 'steps' && (
+    <>
+      <ol class="fig-steps" role="list">
+        {figure.steps.map((s, i) => (
+          <li class="fig-steps__step">
+            <span class="fig-steps__n">{String(i + 1).padStart(2, '0')}</span>
+            <span class="fig-steps__v">{s}</span>
+          </li>
+        ))}
+      </ol>
+      <figcaption class="fig-legend"><span>{figure.caption}</span></figcaption>
+    </>
+  )}
+</figure>

@@ -9,3 +9,6 @@ probe.html
 
 # Contains api-keys.txt — never commit.
 .claude/
+
+# Local session handoff notes — not part of the public repo.
+handoff/

@@ -1,0 +1,1013 @@
+/* Site styles. Tokens in tokens.css, engine foundation in engine.css. Hover treatments
+   (DESIGN.md, one per role) are at the end: all gated on (hover: hover), mirrored on
+   :focus-visible, and still under reduced motion (engine.css zeroes transition times). */
+
+/* ── Layout ─────────────────────────────────────────────────────────────────────────────── */
+
+.wrap {
+  width: 100%;
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.about, .stack, .case__body, .case-head__row, .case-head__meta {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  column-gap: var(--gutter);
+}
+
+main { padding-top: var(--header-h); }
+
+/* In-page jumps land below the fixed header. */
+section[id], footer[id] { scroll-margin-top: calc(var(--header-h) + 0.5rem); }
+
+/* Section rules sit inside the wrap's gutters. Only Work (the table's own top edge) gets the
+   ink rule; every other section opens on a hairline, so the strong line means one thing. */
+:root {
+  --rule-light: linear-gradient(var(--c-line), var(--c-line));
+}
+
+.h-l {
+  font-family: var(--f-display);
+  font-size: var(--t-l);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────────────────────── */
+
+.header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: var(--z-header);
+  /* Opaque: a translucent bar let page text show through the nav on phones. */
+  background: var(--c-ground);
+  border-bottom: 1px solid var(--c-line);
+}
+.header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gutter);
+  height: var(--header-h);
+  font-size: var(--t-s);
+}
+.header__name { padding-block: 0.35em; font-weight: 500; letter-spacing: -0.01em; white-space: nowrap; }
+.header__nav ul { display: flex; gap: clamp(0.9rem, 0.4rem + 1.4vw, 2rem); padding: 0; list-style: none; }
+.nav-link { position: relative; padding-block: 0.35em; white-space: nowrap; }
+/* Touch: grow the hit area to about 44 px tall without moving the layout. */
+@media (pointer: coarse) {
+  .nav-link::before { content: ''; position: absolute; inset: -0.55rem -0.45rem; }
+}
+.clock { color: var(--c-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.header__end { display: flex; align-items: center; gap: clamp(0.9rem, 0.4rem + 1.4vw, 2rem); }
+
+/* Theme toggle: a utility control (colour-only treatment). The swatch fills when dark is on,
+   so the state shows in shape as well as in the page colour; aria-pressed carries it to AT. */
+.theme-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding-block: 0.35em;
+  color: var(--c-muted);
+  white-space: nowrap;
+  transition: color var(--hover) var(--ease-out);
+}
+.theme-toggle::before { content: ''; position: absolute; inset: -0.55rem -0.45rem; } /* ~44 px hit area */
+.theme-toggle__sw {
+  width: 0.8em;
+  height: 0.8em;
+  border: 1px solid currentColor;
+  background: linear-gradient(to right, currentColor 50%, transparent 50%);
+}
+.theme-toggle[aria-pressed='true'] { color: var(--c-ink); }
+.theme-toggle[aria-pressed='true'] .theme-toggle__sw { background: currentColor; }
+@media (hover: hover) { .theme-toggle:hover { color: var(--c-ink); } }
+html:not(.js) .theme-toggle { display: none; }
+.clock time { color: var(--c-ink); }
+
+@media (max-width: 760px) {
+  :root { --header-h: 5.75rem; }
+  .header__inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-content: center;
+    row-gap: 0.55rem;
+  }
+  .header__nav { grid-column: 1 / -1; grid-row: 2; }
+  .header__nav ul { gap: 1.1rem; }
+}
+
+/* Menu disclosure (phones with JS). Without JS the two-row header above stays. */
+.header__panel { display: contents; }
+.menu-toggle {
+  position: relative;
+  display: none;
+  align-items: center;
+  gap: 0.5em;
+  margin-left: auto;
+  padding-block: 0.35em;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.menu-toggle::before { content: ''; position: absolute; inset: -0.55rem -0.6rem; } /* ~44 px hit area */
+/* The sign is two bars: the vertical one folds away, so + turns into − instead of swapping. */
+.menu-toggle__sign { position: relative; width: 0.7em; height: 0.7em; }
+.menu-toggle__sign::before,
+.menu-toggle__sign::after {
+  content: '';
+  position: absolute;
+  inset: calc(50% - 0.75px) 0 auto;
+  height: 1.5px;
+  background: currentColor;
+  transition: transform 0.4s var(--ease-out);
+}
+.menu-toggle__sign::after { transform: rotate(90deg); }
+.menu-toggle[aria-expanded='true'] .menu-toggle__sign::after { transform: rotate(0deg) scaleX(0); }
+@media (max-width: 760px) {
+  html.js { --header-h: 3.5rem; }
+  html.js .header__inner { display: flex; }
+  html.js .menu-toggle { display: inline-flex; }
+  /* Opening wipes the panel down from the header (the table's fill, vertical) and the links rise
+     in turn; closing runs back faster. visibility keeps the closed panel out of the tab order
+     and away from screen readers, and switches only after the close finishes. Reduced motion:
+     engine.css zeroes the transitions, so it simply appears. */
+  html.js .header__panel {
+    display: flex;
+    visibility: hidden;
+    clip-path: inset(0 0 100% 0);
+    /* A gentler curve than --ease-out (which had it 65% open in 90 ms, still abrupt). */
+    --menu-ease: cubic-bezier(0.32, 0.72, 0, 1);
+    transition: clip-path 0.35s var(--menu-ease), visibility 0s linear 0.35s;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.25rem var(--gutter) 1.25rem;
+    background: var(--c-ground);
+    border-bottom: 1px solid var(--c-line);
+  }
+  html.js .header.is-open .header__panel {
+    visibility: visible;
+    clip-path: inset(0 0 0 0);
+    transition: clip-path 0.6s var(--menu-ease), visibility 0s;
+  }
+  html.js .header__nav li,
+  html.js .header__end {
+    opacity: 0;
+    transform: translateY(-0.6rem);
+    transition: opacity 0.2s var(--ease-out), transform 0.2s var(--ease-out);
+  }
+  html.js .header.is-open :is(.header__nav li, .header__end) {
+    opacity: 1;
+    transform: none;
+    transition-duration: 0.5s;
+    transition-delay: calc(0.1s + var(--i, 0) * 0.05s);
+  }
+  html.js .header__nav li:nth-child(2) { --i: 1; }
+  html.js .header__nav li:nth-child(3) { --i: 2; }
+  html.js .header__nav li:nth-child(4) { --i: 3; }
+  html.js .header__nav li:nth-child(5) { --i: 4; }
+  html.js .header__end { --i: 5; }
+  html.js .header__nav ul { flex-direction: column; gap: 0; }
+  html.js .header__nav .nav-link { display: inline-block; padding-block: 0.65rem; font-size: var(--t-m); }
+  html.js .header__nav .nav-link::before { content: none; }
+  html.js .header__end { justify-content: space-between; padding-top: 1rem; border-top: 1px solid var(--c-line); }
+}
+
+/* ── Buttons (CTAs) ─────────────────────────────────────────────────────────────────────── */
+
+.cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9em;
+  padding: 0.95em 1.35em;
+  border: 1px solid var(--c-ink);
+  background: var(--c-surface);
+  font-weight: 500;
+  isolation: isolate;
+  overflow: hidden;
+}
+.cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--c-hit);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--hover) var(--ease-out);
+}
+.cta > span:first-child { transition: transform var(--hover) var(--ease-out); }
+.cta__arrow { transition: transform var(--hover) var(--ease-out); }
+/* Quiet: no fill, but a real control edge. --c-line (1.4:1) read as unfinished next to the ink
+   button; --c-line-strong is the search field's edge (3.4:1, meets the 3:1 non-text minimum). */
+.cta--quiet { border-color: var(--c-line-strong); background: transparent; }
+.cta--dark {
+  border-color: color-mix(in srgb, var(--c-finale-fg) 40%, transparent);
+  background: transparent;
+  color: var(--c-finale-fg);
+}
+
+/* ── Hero ───────────────────────────────────────────────────────────────────────────────── */
+
+/* Compact on purpose: the statement and the top of the work table share the first screen. */
+.hero {
+  padding-top: clamp(2.5rem, 1rem + 5vh, 5rem);
+  padding-bottom: clamp(3rem, 1.5rem + 5vh, 5rem);
+}
+.hero__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.5rem var(--gutter);
+}
+.hero__title {
+  font-size: var(--t-m);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.hero__meta { margin-top: 0.3rem; color: var(--c-muted); }
+.hero__statement {
+  margin-top: clamp(2rem, 1rem + 4vh, 3.5rem);
+  max-width: 26ch;
+  font-family: var(--f-display);
+  font-size: var(--t-xl);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+}
+/* The search-hit pill at display size: rounder corners than the table's would look like a capsule.
+   The fill is drawn one line-height tall: a plain background fills the font's whole content area,
+   which at line-height 0.98 runs up over the descenders of the line above (seen whenever the
+   statement is not split into masked lines: reduced motion, no JS). */
+.hero__hit {
+  border-radius: 0.12em;
+  padding: 0 0.12em;
+  margin-inline: -0.06em;
+  background: linear-gradient(var(--c-hit), var(--c-hit)) no-repeat 0 55% / 100% 0.98em;
+}
+.hero__ctas { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.nowrap { white-space: nowrap; }
+
+/* ── Section heads ──────────────────────────────────────────────────────────────────────── */
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem var(--gutter);
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--c-ink);
+  margin-bottom: 1.75rem;
+}
+.section-head__note { color: var(--c-muted); max-width: 46ch; }
+/* Sections after Work open on the hairline (the ink rule stays Work's alone). */
+.section-head--light { border-top-color: var(--c-line); }
+
+/* ── Work table (signature) ─────────────────────────────────────────────────────────────── */
+
+.work { padding-bottom: clamp(5rem, 3rem + 8vh, 9rem); }
+.table-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem var(--gutter);
+  margin-bottom: 0.75rem;
+}
+.search {
+  position: relative;
+  display: block;
+  width: min(26rem, 100%);
+}
+.search__icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  width: 1rem;
+  height: 1rem;
+  translate: 0 -50%;
+  color: var(--c-muted);
+  pointer-events: none;
+}
+.search input {
+  width: 100%;
+  padding: 0.75rem 1.1rem 0.75rem 2.6rem;
+  border: 1px solid var(--c-line-strong);
+  border-radius: var(--pill);
+  background: var(--c-surface);
+  font-family: var(--f-mono);
+  font-size: var(--t-s);
+  outline-offset: 2px;
+  transition: border-color var(--hover) var(--ease-out);
+}
+.search input::placeholder { color: var(--c-muted); opacity: 1; }
+.search input:focus { border-color: var(--c-ink); }
+.search input::-webkit-search-cancel-button { cursor: pointer; }
+html:not(.js) label.search { display: none; }
+
+.table-count {
+  font-family: var(--f-mono);
+  font-size: var(--t-s);
+  color: var(--c-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.table-frame { background: var(--c-surface); border: 1px solid var(--c-line); }
+.work-table table { width: 100%; border-collapse: collapse; }
+.work-table th,
+.work-table td {
+  padding: 1.05rem clamp(0.6rem, 0.3rem + 0.8vw, 1.25rem);
+  text-align: left;
+  vertical-align: baseline;
+}
+.work-table th {
+  font-family: var(--f-mono);
+  font-size: var(--t-xs);
+  font-weight: 500;
+  color: var(--c-muted);
+  border-bottom: 1px solid var(--c-ink);
+  white-space: nowrap;
+  padding-block: 0.5rem;
+}
+.work-table td {
+  font-family: var(--f-mono);
+  font-size: var(--t-s);
+  font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid var(--c-line);
+}
+.work-table tbody tr:last-child td { border-bottom: 0; }
+
+.c-num { width: 4.5rem; color: var(--c-muted); }
+.c-area { width: 14%; }
+.c-level { width: 14%; }
+.c-result { width: 20%; font-weight: 500; }
+/* Text on the hit flood is always --c-on-hit, so it stays dark in both appearances. */
+.row td { transition: background-size var(--hover) var(--ease-out), color var(--hover) var(--ease-out); }
+
+/* Sort headers: real buttons with JS, plain labels without. */
+.sort {
+  position: relative;
+  display: inline-flex;
+  gap: 0.4em;
+  align-items: baseline;
+  color: inherit;
+  font: inherit;
+  /* 12 px mono label: padding makes the button itself 24 px+ tall (the cell padding shrank to match). */
+  padding-block: 0.3rem;
+  min-width: 1.5rem;
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 calc(100% - 0.3rem) / 0% 1px;
+  transition: color var(--hover) var(--ease-out), background-size var(--hover) var(--ease-out);
+}
+/* Extend the hit area to the header cell's height. */
+.sort::before { content: ''; position: absolute; inset: -0.5rem -0.5rem; }
+.sort__dir { display: inline-block; min-width: 1ch; color: var(--c-ink); }
+th[aria-sort='ascending'] .sort__dir::after { content: '↑'; }
+th[aria-sort='descending'] .sort__dir::after { content: '↓'; }
+th[aria-sort] { color: var(--c-ink); }
+html:not(.js) .sort { display: none; }
+html.js .sort-label { display: none; }
+
+/* A whole row is one link: the title link's ::after covers the row. */
+.row { position: relative; transition: opacity var(--hover) var(--ease-out); }
+.row__link { display: inline-flex; align-items: baseline; gap: 0.6em; outline: none; }
+.row__link::after { content: ''; position: absolute; inset: 0; z-index: 1; }
+.row__title {
+  display: inline-block;
+  font-family: var(--f-body);
+  font-size: var(--t-m);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  transition: transform var(--hover) var(--ease-out);
+}
+.row__arrow {
+  display: inline-block;
+  font-family: var(--f-body);
+  opacity: 0;
+  transform: translateX(-0.4em);
+  transition: transform var(--hover) var(--ease-out), opacity var(--hover) var(--ease-out);
+}
+.row__stack {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: var(--t-xs);
+  color: var(--c-muted);
+}
+/* Misses stay readable: titles at 0.45 are 3.1:1, the large-text minimum (0.28 was 1.9:1). */
+.row.is-dim { opacity: 0.45; }
+
+/* Hit flood: each cell fills in turn, so the colour reads as one sweep from the left. */
+.row td {
+  background: linear-gradient(var(--c-hit), var(--c-hit)) no-repeat 0 0 / 0% 100%;
+}
+.row td:nth-child(2) { transition-delay: 30ms; }
+.row td:nth-child(3) { transition-delay: 60ms; }
+.row td:nth-child(4) { transition-delay: 90ms; }
+.row td:nth-child(5) { transition-delay: 120ms; }
+.row:has(.row__link:focus-visible) { outline: 2px solid var(--c-ink); outline-offset: -2px; }
+
+mark {
+  background: var(--c-hit);
+  color: var(--c-on-hit);
+  border-radius: var(--pill);
+  padding: 0.05em 0.28em;
+  margin-inline: -0.28em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+@media (max-width: 760px) {
+  .work-table .c-area, .work-table .c-level { display: none; }
+  .c-num { width: 2.75rem; }
+  .c-result { width: 32%; font-size: var(--t-xs); }
+}
+/* Without hover, rows still need a disclosure cue: the arrow shows at rest. */
+@media (hover: none) {
+  .row .row__arrow { opacity: 1; transform: none; color: var(--c-muted); }
+}
+
+/* ── Track record ───────────────────────────────────────────────────────────────────────── */
+
+/* The work table's summary row: six cells in one frame, a mono label over each tabular figure,
+   ink rule under the label line like the table's header. 3×2 under 1100 px, 2×3 on phones. */
+.record { padding-bottom: clamp(5rem, 3rem + 8vh, 9rem); }
+.record__strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.record__cell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-left: 1px solid var(--c-line);
+}
+.record__cell:nth-child(6n + 1) { border-left: 0; }
+.record__label {
+  padding: 0.5rem clamp(0.6rem, 0.3rem + 0.8vw, 1.25rem);
+  border-bottom: 1px solid var(--c-ink);
+  font-family: var(--f-mono);
+  font-size: var(--t-xs);
+  font-weight: 500;
+  color: var(--c-muted);
+  flex: 1;
+}
+.record__cell { container-type: inline-size; }
+/* Sized to the cell, not the viewport: at six across, "2,300+" at --t-xl ran into its neighbour. */
+.record__value {
+  padding: 1.1rem clamp(0.6rem, 0.3rem + 0.8vw, 1.25rem) 1.25rem;
+  font-family: var(--f-display);
+  font-size: min(var(--t-xl), 24cqi);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 1100px) {
+  .record__strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .record__cell:nth-child(6n + 1) { border-left: 1px solid var(--c-line); }
+  .record__cell:nth-child(3n + 1) { border-left: 0; }
+  .record__cell:nth-child(n + 4) { border-top: 1px solid var(--c-line); }
+}
+@media (max-width: 560px) {
+  .record__strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .record__cell:nth-child(3n + 1) { border-left: 1px solid var(--c-line); }
+  .record__cell:nth-child(2n + 1) { border-left: 0; }
+  .record__cell:nth-child(n + 3) { border-top: 1px solid var(--c-line); }
+}
+
+/* ── Career ─────────────────────────────────────────────────────────────────────────────── */
+
+/* Same cell metrics as the work table. Rows are not links, so they take the hover flood as a
+   reading aid only: no arrow, no title slide, default cursor. */
+.career { padding-bottom: clamp(5rem, 3rem + 8vh, 9rem); }
+.career-table { width: 100%; border-collapse: collapse; }
+.career-table th,
+.career-table td {
+  padding: 1.05rem clamp(0.6rem, 0.3rem + 0.8vw, 1.25rem);
+  text-align: left;
+  vertical-align: baseline;
+}
+.career-table th {
+  font-family: var(--f-mono);
+  font-size: var(--t-xs);
+  font-weight: 500;
+  color: var(--c-muted);
+  border-bottom: 1px solid var(--c-ink);
+  white-space: nowrap;
+  padding-block: 0.5rem;
+}
+.career-table td { border-bottom: 1px solid var(--c-line); }
+.career-table tbody tr:last-child td { border-bottom: 0; }
+.c-dates {
+  width: 13rem;
+  font-family: var(--f-mono);
+  font-size: var(--t-s);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-muted);
+  white-space: nowrap;
+}
+.c-role { width: 34%; }
+.career-row__role {
+  display: block;
+  font-size: var(--t-m);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+.career-row__org {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--f-mono);
+  font-size: var(--t-xs);
+  color: var(--c-muted);
+}
+.c-scope { max-width: 62ch; }
+.career-row td {
+  background: linear-gradient(var(--c-hit), var(--c-hit)) no-repeat 0 0 / 0% 100%;
+  transition: background-size var(--hover) var(--ease-out), color var(--hover) var(--ease-out);
+}
+.career-row td:nth-child(2) { transition-delay: 30ms; }
+.career-row td:nth-child(3) { transition-delay: 60ms; }
+
+/* Phones: each row stacks (dates, role, scope) and the column header hides. The explicit
+   ARIA roles in the markup keep table semantics after the display change (Safari drops them). */
+@media (max-width: 760px) {
+  .career-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .career-table tbody, .career-row { display: block; }
+  .career-row { border-bottom: 1px solid var(--c-line); }
+  .career-row:last-child { border-bottom: 0; }
+  .career-row td { display: block; width: auto; border-bottom: 0; padding-block: 0; }
+  .career-row td:first-child { padding-top: 1.1rem; }
+  .career-row td:last-child { padding-top: 0.6rem; padding-bottom: 1.25rem; }
+  .career-row .c-role { padding-top: 0.5rem; }
+}
+
+/* ── About ──────────────────────────────────────────────────────────────────────────────── */
+
+.about {
+  padding-top: 1.25rem;
+  padding-bottom: clamp(6rem, 4rem + 10vh, 11rem);
+  background: var(--rule-light) no-repeat top center / calc(100% - 2 * var(--gutter)) 1px;
+  align-items: start;
+  row-gap: 2.5rem;
+}
+.about__title { grid-column: 1 / 4; }
+.about__text {
+  grid-column: 4 / 12;
+  grid-row: 1 / span 2;
+  display: grid;
+  gap: 1.2em;
+  font-size: var(--t-m);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+.about__facts { grid-column: 1 / 4; grid-row: 2; display: grid; gap: 1.25rem; }
+.about__fact dt { font-size: var(--t-s); color: var(--c-muted); }
+.about__fact dd { font-size: var(--t-s); }
+
+/* ── Stack ──────────────────────────────────────────────────────────────────────────────── */
+
+.stack {
+  padding-top: 1.25rem;
+  padding-bottom: clamp(5rem, 3rem + 8vh, 9rem);
+  background: var(--rule-light) no-repeat top center / calc(100% - 2 * var(--gutter)) 1px;
+  align-items: start;
+}
+.stack__title { grid-column: 1 / 4; }
+.stack__groups {
+  grid-column: 4 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 2rem var(--gutter);
+}
+.stack__group dt { font-size: var(--t-s); color: var(--c-muted); margin-bottom: 0.5rem; }
+/* Each group reads as one tag line, like the stack line under a table row. */
+.stack__group ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--f-mono);
+  font-size: var(--t-s);
+}
+/* The separator trails its item, so a wrapped line never starts with a dot. */
+.stack__group li:not(:last-child)::after { content: '·'; padding-inline: 0.6em; color: var(--c-muted); }
+
+/* ── Footer (finale, ink ground) ────────────────────────────────────────────────────────── */
+
+.footer {
+  position: relative;
+  z-index: var(--z-content);
+  background: var(--c-finale-bg);
+  color: var(--c-finale-fg);
+  padding-top: clamp(5rem, 3rem + 10vh, 10rem);
+  padding-bottom: 2rem;
+}
+.footer__lead {
+  max-width: 34ch;
+  font-size: var(--t-m);
+  font-weight: 400;
+  line-height: 1.35;
+  color: color-mix(in srgb, var(--c-finale-fg) 72%, transparent);
+}
+.footer__email {
+  display: inline-block;
+  margin-top: clamp(1.5rem, 1rem + 2vw, 3rem);
+  font-family: var(--f-display);
+  font-size: clamp(2.25rem, 12vw, 11rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+  overflow-wrap: anywhere;
+  /* Tight tracking pushes the last glyph and the descenders past the box: pad so the hit band
+     covers them. */
+  padding: 0 0.12em 0.16em 0;
+  /* Inline-link treatment: an underline at rest that rises into a hit band. The rest state is
+     the text colour; yellow appears only under the pointer or focus. */
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 100% / 100% 0.05em;
+  transition: background-size 0.45s var(--ease-out), color var(--hover) var(--ease-out);
+}
+.footer__email-line { display: block; }
+.footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: clamp(2rem, 1rem + 3vw, 3.5rem);
+  padding: 0;
+  list-style: none;
+}
+.footer__colophon {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem var(--gutter);
+  margin-top: clamp(4rem, 2rem + 8vh, 8rem);
+  padding-top: 1.25rem;
+  border-top: 1px solid color-mix(in srgb, var(--c-finale-fg) 20%, transparent);
+  font-size: var(--t-xs);
+  color: color-mix(in srgb, var(--c-finale-fg) 68%, transparent);
+}
+.footer :focus-visible { outline-color: var(--c-hit); }
+
+/* ── Case page ──────────────────────────────────────────────────────────────────────────── */
+
+.case-head {
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-line);
+  padding-top: clamp(1.5rem, 1rem + 2vh, 2.5rem);
+  padding-bottom: clamp(2rem, 1rem + 4vh, 4rem);
+}
+.case-back { font-size: var(--t-s); color: var(--c-muted); transition: color var(--hover) var(--ease-out); }
+.case-head__row { margin-top: clamp(2.5rem, 1.5rem + 5vh, 5rem); align-items: baseline; }
+/* The row number labels the title from above, in the title's column (col 1-3 stays a hang line). */
+.case-head__num { grid-column: 4 / -1; margin-bottom: 0.9rem; font-family: var(--f-mono); font-size: var(--t-s); color: var(--c-muted); }
+.case-head__title {
+  grid-column: 4 / -1;
+  font-family: var(--f-display);
+  font-size: var(--t-xl);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+}
+.case-head__meta { margin-top: clamp(2rem, 1rem + 3vh, 3rem); row-gap: 1.25rem; }
+.case-head__meta > div {
+  grid-column: span 3;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--c-line);
+}
+/* Area, Level, Result fill cols 4-12; Stack runs the same width below, so the rules line up. */
+.case-head__meta > div:first-child { grid-column: 4 / span 3; }
+.case-head__meta > .case-head__stack { grid-column: 4 / -1; }
+.case-head__meta dt { font-family: var(--f-mono); font-size: var(--t-xs); color: var(--c-muted); }
+.case-head__meta dd { font-family: var(--f-mono); font-size: var(--t-s); margin-top: 0.3rem; }
+.case-head__meta .case-head__result { font-weight: 500; }
+
+.case__body { padding-top: clamp(3rem, 2rem + 5vh, 6rem); row-gap: clamp(3rem, 2rem + 4vh, 5rem); }
+.case__summary {
+  grid-column: 4 / 12;
+  font-size: var(--t-m);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+.case__figure { grid-column: 4 / -1; }
+.case__section { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: baseline; }
+.case__heading { grid-column: 1 / 4; font-size: var(--t-m); font-weight: 500; letter-spacing: -0.01em; }
+.case__text { grid-column: 4 / 11; display: grid; gap: 1em; max-width: 64ch; }
+
+.case-next { padding-top: clamp(5rem, 3rem + 8vh, 9rem); padding-bottom: clamp(5rem, 3rem + 8vh, 9rem); }
+.case-next__label { font-size: var(--t-s); color: var(--c-muted); margin-bottom: 0.75rem; }
+.case-next__row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: var(--gutter);
+  padding: 1.5rem clamp(0.6rem, 0.3rem + 0.8vw, 1.25rem);
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-top-color: var(--c-ink);
+  isolation: isolate;
+}
+.case-next__row::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--c-hit);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--hover) var(--ease-out);
+}
+.case-next__num { font-family: var(--f-mono); font-size: var(--t-s); color: var(--c-muted); }
+.case-next__title {
+  font-size: var(--t-l);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  transition: transform var(--hover) var(--ease-out);
+}
+.case-next__result { font-family: var(--f-mono); font-size: var(--t-s); font-weight: 500; }
+.case-next .row__arrow { font-size: var(--t-l); }
+
+/* ── Figures (mono is the honest voice here) ────────────────────────────────────────────── */
+
+.fig {
+  padding: clamp(1.25rem, 0.8rem + 2vw, 2.5rem);
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  font-family: var(--f-mono);
+  font-size: var(--t-s);
+}
+.fig-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.75rem;
+  margin-top: 1.5rem;
+  font-size: var(--t-xs);
+  color: var(--c-muted);
+}
+.fig-legend span { display: inline-flex; align-items: center; gap: 0.6em; }
+.fig-note { color: var(--c-muted); }
+.sw { display: inline-block; width: 0.9em; height: 0.9em; border: 1px solid var(--c-ink); }
+.sw--from, .fig-area__from, .fig-bars__bar--from {
+  /* Ink at 25%, not --c-line, so the hatch stays visible on the dark surface too. */
+  background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--c-ink) 25%, transparent) 0 1px, transparent 1px 7px);
+}
+.sw--to { background: var(--c-hit); }
+
+/* The square is at most 30rem: the card hugs it instead of leaving half the row blank. */
+.fig--area { max-width: calc(30rem + 2 * clamp(1.25rem, 0.8rem + 2vw, 2.5rem) + 2px); }
+.fig-area { position: relative; width: min(30rem, 100%); aspect-ratio: 1; }
+.fig-area__from { position: absolute; inset: 0; border: 1px solid var(--c-ink); }
+.fig-area__to {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: var(--side);
+  height: var(--side);
+  background: var(--c-hit);
+  border: 1px solid var(--c-ink);
+}
+.fig-area__cut {
+  position: absolute;
+  right: 1.25rem;
+  top: 1rem;
+  font-family: var(--f-display); /* a headline number, like the track record figures */
+  font-size: var(--t-l);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  background: var(--c-surface);
+  padding-inline: 0.2em;
+}
+
+.fig-bars { display: grid; gap: 1.5rem; }
+.fig-bars__label { display: block; font-size: var(--t-xs); color: var(--c-muted); margin-bottom: 0.5rem; }
+.fig-bars__bar { display: block; width: var(--w); height: clamp(2rem, 1.5rem + 2vw, 3.25rem); border: 1px solid var(--c-ink); }
+.fig-bars__bar--to { background: var(--c-hit); }
+
+.fig-cells { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: 4px; max-width: 44rem; }
+.fig-cells__cell { aspect-ratio: 1; border: 1px solid var(--c-line); }
+.fig-cells__cell.is-on { background: var(--c-hit); border-color: var(--c-ink); }
+.fig-count {
+  font-size: var(--t-l);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  color: var(--c-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.fig-stream {
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+  list-style: none;
+}
+.fig-stream__node {
+  flex: 0 1 13rem;
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  padding: 1rem;
+  border: 1px solid var(--c-ink);
+}
+.fig-stream__node--store { flex-basis: 15rem; background: var(--c-hit); color: var(--c-on-hit); }
+.fig-stream__k { font-size: var(--t-xs); color: var(--c-muted); }
+.fig-stream__node--store .fig-stream__k { color: color-mix(in srgb, var(--c-on-hit) 75%, transparent); }
+.fig-stream__pipe {
+  position: relative;
+  flex: 1 1 3rem;
+  min-width: 2rem;
+  align-self: center;
+  height: 1px;
+  background: var(--c-ink);
+}
+.fig-stream__pipe span {
+  --i: 0;
+  position: absolute;
+  top: -4px;
+  left: calc(var(--i) * 20%);
+  width: 8px;
+  height: 8px;
+  background: var(--c-ink);
+}
+.fig-stream__pipe span:nth-child(2) { --i: 1; }
+.fig-stream__pipe span:nth-child(3) { --i: 2; }
+.fig-stream__pipe span:nth-child(4) { --i: 3; }
+.fig-stream__pipe span:nth-child(5) { --i: 4; }
+.fig-stream__pipe--slice span:nth-child(2) { --i: 2.5; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .fig-stream__pipe span {
+    left: 0;
+    animation: stream-x 2.5s linear infinite;
+    animation-delay: calc(var(--i) * -0.5s);
+  }
+  .fig-stream__pipe--slice span { animation-duration: 2.5s; animation-delay: calc(var(--i) * -0.5s); }
+}
+@keyframes stream-x { from { left: 0; } to { left: calc(100% - 8px); } }
+@keyframes stream-y { from { top: 0; } to { top: calc(100% - 8px); } }
+
+@media (max-width: 760px) {
+  .fig-stream { flex-direction: column; }
+  .fig-stream__node { flex-basis: auto; }
+  .fig-stream__pipe { width: 1px; height: auto; min-height: 3rem; min-width: 0; align-self: flex-start; margin-left: 1.5rem; }
+  .fig-stream__pipe span { top: calc(var(--i) * 20%); left: -4px; }
+}
+@media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
+  .fig-stream__pipe span { top: 0; left: -4px; animation-name: stream-y; }
+}
+
+.fig-steps { display: flex; flex-wrap: wrap; gap: 0.5rem 0; padding: 0; list-style: none; }
+.fig-steps__step {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 9rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--c-ink);
+}
+.fig-steps__step + .fig-steps__step { margin-left: -1px; }
+.fig-steps__step:last-child { background: var(--c-hit); color: var(--c-on-hit); }
+.fig-steps__n { font-size: var(--t-xs); color: var(--c-muted); }
+.fig-steps__step:last-child .fig-steps__n { color: color-mix(in srgb, var(--c-on-hit) 75%, transparent); }
+
+/* ── 404 ────────────────────────────────────────────────────────────────────────────────── */
+
+.missing { padding-top: clamp(4rem, 2rem + 9vh, 9rem); padding-bottom: clamp(5rem, 3rem + 8vh, 9rem); }
+.missing__title {
+  font-size: var(--t-xl);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  margin-bottom: 2.5rem;
+}
+.search--static {
+  padding: 0.75rem 1.1rem;
+  border: 1px solid var(--c-ink);
+  border-radius: var(--pill);
+  background: var(--c-surface);
+  font-family: var(--f-mono);
+  font-size: var(--t-s);
+  overflow-wrap: anywhere;
+}
+.row--empty td {
+  padding-block: 3rem;
+  text-align: center;
+  color: var(--c-muted);
+  font-family: var(--f-body);
+  font-size: var(--t-body);
+}
+.missing__cta { margin-top: 2rem; }
+
+/* ── Small screens: every hang line collapses to one column ─────────────────────────────── */
+
+@media (max-width: 760px) {
+  .about__title, .about__text, .about__facts,
+  .stack__title, .stack__groups,
+  .case-head__num, .case-head__title,
+  .case__summary, .case__figure, .case__heading, .case__text {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+  .about__text { font-size: var(--t-body); }
+  .stack__title { margin-bottom: 1.5rem; }
+  .case-head__meta > div, .case-head__meta > div:first-child { grid-column: span 6; }
+  .case-head__meta > .case-head__stack { grid-column: 1 / -1; }
+  .case-head__num { margin-bottom: 0.6rem; }
+  /* Close the empty band before the footer: the section's end space and the footer's lead-in
+     were both sized for desktop. */
+  .stack, .case-next { padding-bottom: 3rem; }
+  /* The other sections' end space was also sized for desktop (about 110-130 px on a phone). */
+  .work, .record, .career, .about { padding-bottom: 4rem; }
+  .footer { padding-top: 3.5rem; }
+  .case__section { row-gap: 0.75rem; }
+  .case-next__row { grid-template-columns: 2.75rem minmax(0, 1fr); }
+  .case-next__result { grid-column: 2; }
+  .case-next .row__arrow { display: none; }
+}
+
+/* ── Hover treatments (one per role) ────────────────────────────────────────────────────── */
+
+/* Primary rows and CTAs: hit floods from the left, the title slides 6 px, the arrow travels. */
+@media (hover: hover) {
+  .row:hover td { background-size: 100% 100%; color: var(--c-on-hit); }
+  .row:hover .row__stack { color: var(--c-on-hit); }
+  .row:hover .row__title { transform: translateX(6px); }
+  .row:hover .row__arrow { opacity: 1; transform: translateX(0.25em); }
+  .row:hover mark { box-shadow: inset 0 0 0 1px var(--c-on-hit); }
+  .career-row:hover td,
+  .career-row:hover .career-row__org { background-size: 100% 100%; color: var(--c-on-hit); }
+
+  .cta:hover { color: var(--c-on-hit); }
+  .cta:hover::before { transform: scaleX(1); }
+  .cta:hover > span:first-child { transform: translateX(6px); }
+  .cta:hover .cta__arrow { transform: translateX(4px); }
+  .cta--dark:hover { border-color: var(--c-hit); }
+  .cta--quiet:hover { border-color: var(--c-ink); }
+
+  .sort:hover { color: var(--c-ink); background-size: 100% 1px; }
+  .search input:hover:not(:focus) { border-color: var(--c-muted); }
+
+  .case-next__row:hover { color: var(--c-on-hit); }
+  .case-next__row:hover .case-next__num { color: var(--c-on-hit); }
+  .case-next__row:hover::before { transform: scaleX(1); }
+  .case-next__row:hover .case-next__title { transform: translateX(6px); }
+  .case-next__row:hover .row__arrow { opacity: 1; transform: translateX(0.25em); }
+}
+.row:has(.row__link:focus-visible) td { background-size: 100% 100%; color: var(--c-on-hit); }
+.row:has(.row__link:focus-visible) .row__stack { color: var(--c-on-hit); }
+.row:has(.row__link:focus-visible) .row__title { transform: translateX(6px); }
+.row:has(.row__link:focus-visible) .row__arrow { opacity: 1; transform: translateX(0.25em); }
+.cta:focus-visible { color: var(--c-on-hit); }
+.cta:focus-visible::before { transform: scaleX(1); }
+.cta:focus-visible > span:first-child { transform: translateX(6px); }
+.cta:focus-visible .cta__arrow { transform: translateX(4px); }
+.case-next__row:focus-visible,
+.case-next__row:focus-visible .case-next__num { color: var(--c-on-hit); }
+.case-next__row:focus-visible::before { transform: scaleX(1); }
+.case-next__row:focus-visible .case-next__title { transform: translateX(6px); }
+.case-next__row:focus-visible .row__arrow { opacity: 1; transform: translateX(0.25em); }
+
+/* Nav: the underline draws; the current section keeps it. */
+.nav-link {
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 100% / 0% 1px;
+  transition: background-size var(--hover) var(--ease-out);
+}
+.nav-link.is-current { background-size: 100% 1px; }
+@media (hover: hover) { .nav-link:hover { background-size: 100% 1px; } }
+.nav-link:focus-visible { background-size: 100% 1px; }
+
+/* Inline links: underline at rest that rises into a hit band (the footer email). */
+@media (hover: hover) {
+  .footer__email:hover {
+    background-image: linear-gradient(var(--c-hit), var(--c-hit));
+    background-size: 100% 100%;
+    color: var(--c-on-hit);
+  }
+}
+.footer__email:focus-visible {
+  background-image: linear-gradient(var(--c-hit), var(--c-hit));
+  background-size: 100% 100%;
+  color: var(--c-on-hit);
+}
+
+/* Utility controls (back link, theme toggle): the nav's underline draws, the text darkens. The
+   name is the one colour-only link (it is the logo). */
+.case-back, .theme-toggle {
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 calc(100% - 0.2em) / 0% 1px;
+  transition: color var(--hover) var(--ease-out), background-size var(--hover) var(--ease-out);
+}
+.case-back { display: inline-block; padding-block: 0.35em; }
+.header__name { transition: color var(--hover) var(--ease-out); }
+@media (hover: hover) {
+  .case-back:hover, .theme-toggle:hover { color: var(--c-ink); background-size: 100% 1px; }
+  .header__name:hover { color: var(--c-muted); }
+}
+.case-back:focus-visible, .theme-toggle:focus-visible { color: var(--c-ink); background-size: 100% 1px; }

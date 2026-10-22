@@ -1,0 +1,21 @@
+---
+import { site } from '../data/site';
+
+const [user, domain] = site.email.split('@');
+---
+<footer class="footer" id="contact">
+  <div class="wrap">
+    <h2 class="footer__lead" data-reveal="up">{site.seeking}</h2>
+    <a class="footer__email" href={`mailto:${site.email}`}>
+      <span class="footer__email-line">{user}</span><span class="footer__email-line">@{domain}</span>
+    </a>
+    <ul class="footer__links" role="list">
+      <li><a class="cta cta--dark" href={site.cv} target="_blank" rel="noopener noreferrer" data-astro-prefetch="false"><span>Resume<span class="sr-only"> (opens in a new tab)</span></span><span class="cta__arrow" aria-hidden="true">↗</span></a></li>
+      <li><a class="cta cta--dark" href={site.linkedin} target="_blank" rel="noopener noreferrer"><span>LinkedIn<span class="sr-only"> (opens in a new tab)</span></span><span class="cta__arrow" aria-hidden="true">↗</span></a></li>
+    </ul>
+    <p class="footer__colophon">
+      <span>Set in Supreme and IBM Plex Mono. Built with Astro and GSAP. No trackers.</span>
+      <span>{site.city}</span>
+    </p>
+  </div>
+</footer>

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://manatsinghbrar.github.io/sitemap-index.xml

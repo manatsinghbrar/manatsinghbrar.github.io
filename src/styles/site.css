@@ -377,10 +377,11 @@ th[aria-sort] { color: var(--c-ink); }
 html:not(.js) .sort { display: none; }
 html.js .sort-label { display: none; }
 
-/* A whole row is one link: the title link's ::after covers the row. */
+/* A whole row is one link: `openRow()` in setup.ts forwards row clicks to the title link. A
+   stretched ::after escaped the row in iOS Safari and covered the page with the last row's link. */
 .row { position: relative; transition: opacity var(--hover) var(--ease-out); }
+html.js .row[data-row] { cursor: pointer; }
 .row__link { display: inline-flex; align-items: baseline; gap: 0.6em; outline: none; }
-.row__link::after { content: ''; position: absolute; inset: 0; z-index: 1; }
 .row__title {
   display: inline-block;
   font-family: var(--f-body);

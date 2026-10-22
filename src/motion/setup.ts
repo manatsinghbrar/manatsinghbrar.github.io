@@ -37,6 +37,15 @@ function rememberRow(e: MouseEvent) {
   pendingRow = { el: row, at: performance.now() };
 }
 
+// Whole-row click for the work table: forwards to the title link so the router and expand run.
+function openRow(e: MouseEvent) {
+  if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  const target = e.target as Element | null;
+  if (!target?.closest || target.closest('a')) return;
+  if (!(getSelection()?.isCollapsed ?? true)) return; // let people select text in a row
+  target.closest('tr[data-row]')?.querySelector<HTMLAnchorElement>('a[data-row-link]')?.click();
+}
+
 function takeRow() {
   const p = pendingRow;
   pendingRow = null;
@@ -204,6 +213,7 @@ function jumpToHash() {
 export function setupMotion() {
   setTransition(rowsTransition);
   document.addEventListener('click', rememberRow, { capture: true });
+  document.addEventListener('click', openRow);
   document.addEventListener('astro:before-preparation', (e) => {
     nav = { from: here, to: e.to.pathname };
     traversing = e.navigationType === 'traverse';

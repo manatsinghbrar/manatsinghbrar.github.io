@@ -29,7 +29,7 @@ export const site = {
   role: 'Frontend engineer',
   title: 'Senior software engineer, frontend',
   employer: 'Privafy',
-  url: 'https://manatsinghbrar.github.io',
+  url: 'https://manatsinghbrar.pages.dev',
   city: 'Bangalore',
   tz: 'Asia/Kolkata',
   description:

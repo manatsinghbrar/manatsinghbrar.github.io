@@ -1,4 +1,4 @@
-// Native scroll only (no smooth-scroll library). ScrollTrigger reads native scroll on its own.
+// Native scroll only (no smooth-scroll library).
 
 export const resetScroll = () => scrollTo(0, 0);
 export function scrollToTarget(target: string | HTMLElement | number) {

@@ -5,13 +5,10 @@
 //   - Case to home (back link or browser back): the same move reversed, the case header grows
 //     to fill the screen, then shrinks into the row it came from.
 //   - Header (always visible): Bangalore clock, nav current-section underline, phone menu.
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ease, onPage, scrollToTarget, setTransition } from '../engine';
+import { ease, onPage, scrollToTarget, setShown, setTransition, tween, wait } from '../engine';
+import type { Transition } from '../engine/transition';
 import { site } from '../data/site';
 import { registerTable } from './table';
-
-gsap.registerPlugin(ScrollTrigger);
 
 // ── Transition ───────────────────────────────────────────────────────────────────────────
 
@@ -61,74 +58,80 @@ const insetOf = (r: DOMRect) => {
 const FULL = 'inset(0px 0px 0px 0px)';
 const cssVar = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
-const rowsTransition = {
-  leave(c: HTMLElement) {
-    const rows = c.querySelectorAll('.curtain__row');
-    const panel = c.querySelector('.curtain__expand');
+const parts = (c: HTMLElement) => ({
+  rows: [...c.querySelectorAll<HTMLElement>('.curtain__row')],
+  panel: c.querySelector<HTMLElement>('.curtain__expand')!,
+});
+// The six ink rows scale across from `origin` (stagger 40 ms).
+const sweep = (rows: HTMLElement[], from: number, to: number, origin: string) => Promise.all(rows.map((r, i) => {
+  r.style.transformOrigin = origin;
+  return tween(r, { transform: `scaleX(${from})` }, { transform: `scaleX(${to})` }, { duration: 500, delay: i * 40, easing: ease.inOut });
+}));
+async function fadeOut(panel: HTMLElement) {
+  await tween(panel, { opacity: '1' }, { opacity: '0' }, { duration: 300, easing: ease.soft });
+  setShown(panel, false);
+}
+
+const rowsTransition: Transition = {
+  async leave(c) {
+    const { rows, panel } = parts(c);
     const row = takeRow();
-    if (row) {
-      mode = 'expand';
-      return gsap.timeline()
-        .set(rows, { scaleX: 0 })
-        .set(c, { autoAlpha: 1 })
-        .fromTo(panel,
-          { autoAlpha: 1, clipPath: insetOf(row.getBoundingClientRect()), backgroundColor: cssVar('--c-hit') },
-          { clipPath: FULL, backgroundColor: cssVar('--c-surface'), duration: 0.7, ease: ease.inOut });
-    }
-    const slug = nav?.to === '/' ? caseSlug(nav.from) : '';
-    const head = document.querySelector<HTMLElement>('[data-case-head]');
+    const slug = !row && nav?.to === '/' ? caseSlug(nav.from) : '';
+    const head = slug ? document.querySelector<HTMLElement>('[data-case-head]') : null;
     nav = null;
-    if (slug && head) {
-      mode = 'collapse';
-      collapseSlug = slug;
-      return gsap.timeline()
-        .set(rows, { scaleX: 0 })
-        .set(c, { autoAlpha: 1 })
-        .fromTo(panel,
-          { autoAlpha: 1, clipPath: insetOf(head.getBoundingClientRect()), backgroundColor: cssVar('--c-surface') },
-          { clipPath: FULL, duration: 0.6, ease: ease.inOut });
+    if (row || head) {
+      // Expand grows the clicked row; collapse grows the case header. Either fills the screen.
+      mode = row ? 'expand' : 'collapse';
+      if (head) collapseSlug = slug;
+      rows.forEach((r) => { r.style.transform = 'scaleX(0)'; });
+      setShown(c, true);
+      setShown(panel, true);
+      const surface = cssVar('--c-surface');
+      await tween(panel,
+        { clipPath: insetOf((row ?? head!).getBoundingClientRect()), backgroundColor: row ? cssVar('--c-hit') : surface },
+        { clipPath: FULL, backgroundColor: surface },
+        { duration: row ? 700 : 600, easing: ease.inOut });
+      return;
     }
     mode = 'rows';
-    return gsap.timeline()
-      .set(panel, { autoAlpha: 0 })
-      .set(c, { autoAlpha: 1 })
-      .fromTo(rows, { scaleX: 0, transformOrigin: '0% 50%' },
-        { scaleX: 1, duration: 0.5, stagger: 0.04, ease: ease.inOut });
+    setShown(panel, false);
+    setShown(c, true);
+    await sweep(rows, 0, 1, '0% 50%');
   },
-  enter(c: HTMLElement, startIntro: () => void) {
-    const panel = c.querySelector('.curtain__expand');
+  async enter(c, startIntro) {
+    const { rows, panel } = parts(c);
     if (mode === 'expand') {
       const head = document.querySelector<HTMLElement>('[data-case-head]');
-      const tl = gsap.timeline();
-      if (head) tl.to(panel, { clipPath: insetOf(head.getBoundingClientRect()), duration: 0.6, ease: ease.out });
+      if (head) {
+        void tween(panel, { clipPath: FULL }, { clipPath: insetOf(head.getBoundingClientRect()) }, { duration: 600, easing: ease.out });
+        await wait(400);
+      }
       // The title rises as the panel fades, so the header is never shown empty.
-      return tl
-        .call(startIntro, undefined, head ? '-=0.2' : 0)
-        .to(panel, { autoAlpha: 0, duration: 0.3, ease: ease.soft }, '<')
-        .set(c, { autoAlpha: 0 });
+      startIntro();
+      await fadeOut(panel);
+      setShown(c, false);
+      return;
     }
     if (mode === 'collapse') {
       const link = document.querySelector<HTMLElement>(`a[data-row-link][href="/work/${CSS.escape(collapseSlug)}/"]`);
       const row = link?.closest<HTMLElement>('[data-row]');
-      const tl = gsap.timeline();
       if (row) {
         // Browser back already restored the scroll position; the back link lands on #work, so
         // bring the row into view if it is not.
         const r = row.getBoundingClientRect();
         if (r.top < 0 || r.bottom > innerHeight) row.scrollIntoView({ block: 'center', behavior: 'instant' });
-        tl.to(panel, {
-          clipPath: insetOf(row.getBoundingClientRect()), backgroundColor: cssVar('--c-hit'), duration: 0.6, ease: ease.out,
-        });
+        void tween(panel,
+          { clipPath: FULL, backgroundColor: cssVar('--c-surface') },
+          { clipPath: insetOf(row.getBoundingClientRect()), backgroundColor: cssVar('--c-hit') },
+          { duration: 600, easing: ease.out });
+        await wait(500);
       }
-      return tl
-        .to(panel, { autoAlpha: 0, duration: 0.3, ease: ease.soft }, row ? '-=0.1' : 0)
-        .set(c, { autoAlpha: 0 });
+      await fadeOut(panel);
+      setShown(c, false);
+      return;
     }
-    return gsap.timeline()
-      .to(c.querySelectorAll('.curtain__row'), {
-        scaleX: 0, transformOrigin: '100% 50%', duration: 0.5, stagger: 0.04, ease: ease.inOut,
-      })
-      .set(c, { autoAlpha: 0 });
+    await sweep(rows, 1, 0, '100% 50%');
+    setShown(c, false);
   },
 };
 
@@ -146,7 +149,6 @@ function startClock() {
     const now = new Date();
     el.textContent = clockFormat.format(now);
     el.setAttribute('datetime', now.toISOString());
-    // Wall-clock timer: gsap's lag smoothing would hold a background tab's clock up to a minute behind.
     timer = window.setTimeout(tick, (60 - now.getSeconds()) * 1000 + 50); // next minute boundary
   };
   tick();
@@ -186,18 +188,20 @@ function initMenu() {
   };
 }
 
-// On the home page the nav underline follows the section in view.
+// On the home page the nav underline follows the section crossing the middle of the screen.
 function initNavCurrent() {
+  if (location.pathname !== '/') return;
+  const links = new Map<Element, HTMLAnchorElement>();
   document.querySelectorAll<HTMLAnchorElement>('[data-nav]').forEach((link) => {
     const section = document.getElementById(link.dataset.nav!);
-    if (!section || location.pathname !== '/') return;
-    ScrollTrigger.create({
-      trigger: section,
-      start: 'top 50%',
-      end: 'bottom 50%',
-      onToggle: (self) => link.classList.toggle('is-current', self.isActive),
-    });
+    if (section) links.set(section, link);
   });
+  // The root is a zero-height line across the middle of the viewport.
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) links.get(e.target)?.classList.toggle('is-current', e.isIntersecting);
+  }, { rootMargin: '-50% 0px -50% 0px' });
+  links.forEach((_, section) => io.observe(section));
+  return () => io.disconnect();
 }
 
 // Arriving at /#section from another page: enter() resets to the top, so jump to the section.
@@ -221,13 +225,16 @@ export function setupMotion() {
 
   onPage(({ path }) => {
     here = path;
+    // Case pages always open at the top, even on back/forward or reload (the router restores scroll).
+    if (caseSlug(path)) scrollTo(0, 0);
     jumpToHash();
     const stopClock = startClock();
     const stopMenu = initMenu();
-    initNavCurrent();
+    const stopNav = initNavCurrent();
     return () => {
       stopClock?.();
       stopMenu?.();
+      stopNav?.();
     };
   });
 

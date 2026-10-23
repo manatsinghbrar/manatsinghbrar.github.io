@@ -246,8 +246,7 @@ html:not(.js) .theme-toggle { display: none; }
 }
 /* The search-hit pill at display size: rounder corners than the table's would look like a capsule.
    The fill is drawn one line-height tall: a plain background fills the font's whole content area,
-   which at line-height 0.98 runs up over the descenders of the line above (seen whenever the
-   statement is not split into masked lines: reduced motion, no JS). */
+   which at line-height 0.98 runs up over the descenders of the line above. */
 .hero__hit {
   border-radius: 0.12em;
   padding: 0 0.12em;

@@ -15,13 +15,6 @@
   font-display: swap;
 }
 @font-face {
-  font-family: 'Supreme';
-  src: url('/fonts/supreme-700-normal.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
   font-family: 'Plex Mono';
   src: url('/fonts/plex-mono-400-normal.woff2') format('woff2');
   font-weight: 400;

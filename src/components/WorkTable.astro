@@ -59,7 +59,7 @@ const sortable = [
           >
             <td class="c-num">{pad(i)}</td>
             <td class="c-work">
-              <a class="row__link" href={`/work/${c.slug}/`} data-row-link>
+              <a class="row__link" href={`/work/${c.slug}/`} data-row-link data-astro-prefetch="viewport">
                 <span class="row__title" data-hl>{c.title}</span>
                 <span class="row__arrow" aria-hidden="true">→</span>
               </a>

@@ -70,7 +70,7 @@ values in both appearances (`tokens.css`).
 **Rules.** Only the Work section opens on an ink rule (the table's top edge); every other
 section opens on a hairline.
 
-**Type.** Supreme (Fontshare) 400/500/700 for display and text. IBM Plex Mono 400/500 only
+**Type.** Supreme (Fontshare) 400/500 for display and text. IBM Plex Mono 400/500 only
 inside the table and figures (column headers, cell data, counters), where mono is the honest
 voice of a data grid. Display tracking -0.035em at t-xl, -0.02em at t-l. Body 17 px / 1.55.
 Tabular figures everywhere a number sits in a column.
@@ -81,7 +81,9 @@ tight, about airy, footer full.
 
 **Shape.** Radius 0 on structure, 999px only on the search field and the hit marks.
 
-**Motion.** One ease family (expo). Rows: 0.6 s `expo.out`, stagger 30 ms. Page transition:
+**Motion.** One ease family (expo), no animation library: CSS transitions, Web Animations and
+View Transitions only. Text reveals rise out of their own box as one block (no per-line split).
+Rows re-sort: 0.6 s `--ease-out`. Page transition:
 the curtain arrives as six ink rows staggered from the left (a table filling), 0.7 s, and
 leaves the same way. Row to case: the clicked row grows to the case header. Hovers 0.3 s.
 

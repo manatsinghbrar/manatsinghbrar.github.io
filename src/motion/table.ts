@@ -1,12 +1,9 @@
 // The signature: the work index behaves like the data table it describes.
-//   - Sortable headers (#, Work, Area, Level). Rows slide to their new order (FLIP).
+//   - Sortable headers (#, Work, Area, Level). Rows slide to their new order (View Transitions;
+//     browsers without them re-order at once).
 //   - Search wraps matches in <mark> and dims the rows that miss. Nothing reflows.
 // The markup is a real <table> that reads and links without JS (WorkTable.astro).
-import { gsap } from 'gsap';
-import { Flip } from 'gsap/Flip';
-import { ease, onPage, prefersReducedMotion } from '../engine';
-
-gsap.registerPlugin(Flip);
+import { onPage, prefersReducedMotion } from '../engine';
 
 type SortKey = 'index' | 'title' | 'area' | 'level';
 type Row = { el: HTMLTableRowElement; cells: { el: HTMLElement; text: string }[] };
@@ -91,13 +88,18 @@ function initTable(root: HTMLElement) {
       else th.removeAttribute('aria-sort');
     }
 
-    if (reduced) {
+    if (reduced || !('startViewTransition' in document)) {
       body!.append(...order);
       return;
     }
-    const state = Flip.getState(order);
-    body!.append(...order);
-    Flip.from(state, { duration: 0.6, ease: ease.out, stagger: 0.03 });
+    // Names only for the sort, so page navigations (also view transitions) never capture rows.
+    order.forEach((el, i) => { el.style.viewTransitionName = `sort-row-${i}`; });
+    const html = document.documentElement;
+    html.classList.add('is-sorting');
+    document.startViewTransition(() => body!.append(...order)).finished.finally(() => {
+      html.classList.remove('is-sorting');
+      order.forEach((el) => { el.style.viewTransitionName = ''; });
+    });
   }
 
   root.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach((button) => {

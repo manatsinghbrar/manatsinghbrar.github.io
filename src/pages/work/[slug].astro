@@ -23,7 +23,7 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
   <article class="case">
     <header class="case-head" data-case-head>
       <div class="wrap">
-        <a class="case-back" href="/#work">← All work</a>
+        <a class="case-back" href="/#work" data-astro-prefetch="viewport">← All work</a>
         <div class="case-head__row">
           <p class="case-head__num">Row {pad(index)} of {String(cases.length).padStart(2, '0')}</p>
           <h1 class="case-head__title" data-split="lines" data-intro>{c.title}</h1>
@@ -54,7 +54,7 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
 
     <nav class="wrap case-next" aria-label="Next case">
       <p class="case-next__label">Next row</p>
-      <a class="case-next__row" href={`/work/${next.slug}/`} data-row-link data-row>
+      <a class="case-next__row" href={`/work/${next.slug}/`} data-row-link data-row data-astro-prefetch="viewport">
         <span class="case-next__num">{pad(nextIndex)}</span>
         <span class="case-next__title">{next.title}</span>
         <span class="case-next__result">{next.result}</span>

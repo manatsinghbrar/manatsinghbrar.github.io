@@ -51,14 +51,33 @@ p { text-wrap: pretty; }
 
 #main, [data-layer='content'] { position: relative; z-index: var(--z-content); }
 
-/* Hidden-until-revealed (only when motion is allowed and JS runs) */
-.motion [data-split], .motion [data-reveal] { visibility: hidden; }
-.split-line { padding-bottom: 0.08em; margin-bottom: -0.08em; } /* descender room inside masks */
-/* SplitText turns each line into a block: keep text-indent on the first line only. */
-[data-split] > * , [data-split] > * > * { text-indent: 0; }
-[data-split] > :first-child, [data-split] > :first-child > :first-child { text-indent: inherit; }
+/* Reveals: hidden until src/engine/reveal.ts adds .is-in (only when motion is allowed and JS runs). */
+.motion [data-reveal] {
+  --rise: 48px;
+  --dur: 1.3s;
+  opacity: 0;
+  transform: translateY(var(--rise));
+  transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+}
+@media (max-width: 760px) {
+  .motion [data-reveal] { --rise: 24px; --dur: 0.9s; }
+}
+.motion [data-reveal='fade'] { --rise: 0px; --dur: 1s; }
+/* Text rises out of its own box, the way a masked line does (negative insets: descender room). */
+.motion [data-split] {
+  transform: translateY(0.6em);
+  clip-path: inset(-0.5em -0.5em 100% -0.5em);
+  transition: transform 1.2s var(--ease-out), clip-path 1.2s var(--ease-out);
+}
+.motion .is-in { opacity: 1; transform: none; }
+.motion [data-split].is-in { clip-path: inset(-0.5em); }
+.motion .is-instant { transition: none; }
 
-/* Curtain (page transitions). No CSS transforms on the panels: GSAP owns them. */
+/* Table sort (src/motion/table.ts): rows slide to their new order. */
+.is-sorting::view-transition-group(*) { animation-duration: 0.6s; animation-timing-function: var(--ease-out); }
+
+/* Curtain (page transitions). No CSS transforms on the panels: the Web Animations in
+   src/motion/setup.ts own them. */
 #curtain { position: fixed; inset: 0; z-index: var(--z-curtain); pointer-events: none; visibility: hidden; overflow: hidden; }
 .curtain__rows { position: absolute; inset: 0; display: grid; grid-template-rows: repeat(6, 1fr); }
 .curtain__row { background: var(--c-curtain); margin-bottom: -1px; /* no hairline gaps between rows */ }

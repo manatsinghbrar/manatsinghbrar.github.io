@@ -1,33 +1,48 @@
 // Page transitions. Adapters run leave() while the next page loads, so a transition adds
 // little or no latency. Override the look with setTransition() (this site: src/motion/setup.ts).
-import { gsap } from 'gsap';
-import { ease, prefersReducedMotion } from './env';
+import { prefersReducedMotion } from './env';
 
 export type Transition = {
-  leave: (curtain: HTMLElement) => Promise<unknown> | gsap.core.Animation;
+  leave: (curtain: HTMLElement) => Promise<unknown>;
   // startIntro lets an enter start the page intro before it finishes (idempotent; the engine
   // starts it after the enter otherwise).
-  enter: (curtain: HTMLElement, startIntro: () => void) => Promise<unknown> | gsap.core.Animation;
+  enter: (curtain: HTMLElement, startIntro: () => void) => Promise<unknown>;
 };
 
-// Default: the ink rows cover the page at once, then lift off the new one.
-let current: Transition = {
-  leave: (c) => gsap.timeline()
-    .set(c, { autoAlpha: 1 })
-    .fromTo(c.querySelector('.curtain__rows'), { yPercent: 100 }, { yPercent: 0, duration: 0.8, ease: ease.inOut }),
-  enter: (c) => gsap.timeline()
-    .to(c.querySelector('.curtain__rows'), { yPercent: -100, duration: 0.9, ease: ease.inOut })
-    .set(c, { autoAlpha: 0 }),
+type Styles = Record<string, string>;
+
+/** Animate `el` from `from` to `to` (Web Animations API) and keep `to` as its inline style.
+ *  `fill: backwards` holds `from` through any delay. Resolves when done, or at once if cancelled. */
+export function tween(el: HTMLElement, from: Styles, to: Styles, options: KeyframeAnimationOptions) {
+  Object.assign(el.style, to);
+  return el.animate([from, to], { fill: 'backwards', ...options }).finished.catch(() => {});
+}
+
+/** Show or hide at once (opacity and visibility together). */
+export function setShown(el: HTMLElement, shown: boolean) {
+  el.style.opacity = shown ? '1' : '0';
+  el.style.visibility = shown ? 'visible' : 'hidden';
+}
+
+export const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Default (also the reduced-motion transition): the curtain fades in and out.
+const fade: Transition = {
+  async leave(c) {
+    setShown(c, true);
+    await tween(c, { opacity: '0' }, { opacity: '1' }, { duration: 200 });
+  },
+  async enter(c) {
+    await tween(c, { opacity: '1' }, { opacity: '0' }, { duration: 200 });
+    setShown(c, false);
+  },
 };
 
-const reduced: Transition = {
-  leave: (c) => gsap.timeline().set(c, { autoAlpha: 1 }).fromTo(c, { opacity: 0 }, { opacity: 1, duration: 0.2 }),
-  enter: (c) => gsap.to(c, { autoAlpha: 0, duration: 0.2 }),
-};
+let current: Transition = fade;
 
 export const setTransition = (t: Transition) => { current = t; };
-const pick = () => (prefersReducedMotion() ? reduced : current);
+const pick = () => (prefersReducedMotion() ? fade : current);
 const curtain = () => document.getElementById('curtain') as HTMLElement;
 
-export const playLeave = () => Promise.resolve(pick().leave(curtain()));
-export const playEnter = (startIntro: () => void = () => {}) => Promise.resolve(pick().enter(curtain(), startIntro));
+export const playLeave = () => pick().leave(curtain());
+export const playEnter = (startIntro: () => void = () => {}) => pick().enter(curtain(), startIntro);

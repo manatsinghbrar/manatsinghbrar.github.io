@@ -36,7 +36,7 @@ export const site = {
     'Frontend engineer at Privafy. I build the React screens security analysts work in all day, and keep them fast at millions of records.',
   email: 'manatsinghbrar@gmail.com',
   linkedin: 'https://www.linkedin.com/in/manat-singh-brar',
-  cv: '/cv.pdf',
+  cv: '/manat-singh-brar-resume.pdf',
   statement: 'I build the screens security analysts work in all day, and keep them fast at millions of records.',
   // The phrase in the statement lit like a search hit (must appear in `statement` verbatim).
   statementHit: 'millions of records',
@@ -252,23 +252,24 @@ export const cases: Case[] = [
     result: 'Extended by the team',
     stack: ['Claude Code', 'i18next', 'Git', 'API mocking'],
     summary:
-      'Five AI-assisted workflows that open pull requests, translate new UI text into every supported language, and mock APIs before the backend exists.',
+      'Five AI-assisted workflows that open pull requests, translate new UI text into every supported language, mock APIs before the backend exists, build screens on the table component, and turn SVG icons into React components.',
     figure: {
       kind: 'steps',
-      steps: ['Pull requests', 'Translations', 'API mocks', 'Workflow four', 'Workflow five'],
-      caption: 'Five workflows. The first three are the ones described here.',
+      steps: ['Pull requests', 'Translations', 'API mocks', 'Table skill', 'SVG to React'],
+      caption: 'Five workflows, one for each repetitive job.',
     },
     body: [
       {
         heading: 'Context',
         text: [
-          'Three jobs took frontend time without needing frontend judgement: writing up pull requests, adding each new string to every language file, and waiting for an endpoint before UI work could start.',
+          'Five jobs took frontend time without needing frontend judgement: writing up pull requests, adding each new string to every language file, waiting for an endpoint before UI work could start, looking up the table component’s conventions for each new screen, and hand-converting SVG icons into React components.',
         ],
       },
       {
         heading: 'What I did',
         text: [
           'I built five Claude Code workflows. They automate pull request creation, translate new UI text into every supported language, and mock APIs so UI work can start before the backend is ready.',
+          'A table skill knows the table component inside out, with every convention for using it, so new screens on it come out right the first time. An icon skill turns SVG icons into React components, a task that used to be done by hand, one icon at a time.',
         ],
       },
       {
